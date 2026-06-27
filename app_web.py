@@ -1,6 +1,10 @@
 # app_web.py
 import streamlit as st
+from database_core import crear_tablas
 from motor_diagnostico import evaluar_caso_clinico
+
+# Ejecutamos la base de datos antes de cargar la página visual para asegurar que existan los datos
+crear_tablas()
 
 # Configuración de la página web
 st.set_page_config(page_title="IA DSM-5-TR Educativa", page_icon="🧠", layout="centered")
@@ -20,16 +24,16 @@ caso_clinico = st.text_area(
     height=150
 )
 
-# Usamos un contenedor estático para evitar el error de renderizado dinámico en la nube
+# Botón de ejecución del análisis clínico
 if st.button("🔍 Analizar Caso Clínico", type="primary"):
     if not caso_clinico.strip():
         st.warning("⚠️ Por favor, ingrese algún texto para poder realizar el análisis clínico.")
     else:
-        # Ejecutamos el motor de análisis
+        # Ejecutamos el motor lógico de análisis
         analisis = evaluar_caso_clinico(caso_clinico)
         
         if analisis:
-            # 1. Bloque de Alertas Críticas (Si existen)
+            # 1. Bloque de Alertas Críticas (Si existen palabras de riesgo)
             if analisis["alertas"]:
                 st.subheader("🚨 Alertas de Riesgo Detectadas")
                 for al in analisis["alertas"]:
@@ -42,7 +46,7 @@ if st.button("🔍 Analizar Caso Clínico", type="primary"):
                 st.markdown(f"### 🔹 {diag['nombre']} ({diag['cie10']}) — **{diag['compatibilidad']}%**")
                 st.markdown(f"**Categoría:** {diag['categoria']}")
                 
-                # Despliegue en formato de texto directo scannable (más estable que columnas/expanders en la nube)
+                # Despliegue en formato de texto directo legible
                 st.markdown("**✔ Criterios Identificados:**")
                 if diag["cumplidos"]:
                     for c in diag["cumplidos"]:
@@ -57,5 +61,5 @@ if st.button("🔍 Analizar Caso Clínico", type="primary"):
                 
                 st.markdown("---")
                                 
-            # 3. Descargo de responsabilidad ético
+            # 3. Descargo de responsabilidad ético profesional
             st.info("⚠️ **AVISO LEGAL:** Este resultado corresponde a un diagnóstico presuntivo basado en los síntomas ingresados y tiene únicamente fines pedagógicos. No sustituye la evaluación clínica formal de un profesional.")
